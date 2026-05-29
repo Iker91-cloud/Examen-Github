@@ -1,68 +1,71 @@
-Name: GlobalFin Enterprise CI/CD
-
-On:
-  Push:
-    Branches: [ “main” ]
-    Paths:
-      - ‘frontend/**’
-      - ‘backend/**’
-      - ‘infrastructure/**’
-      - ‘!docs/**’
-  Pull_request:
-    Branches: [ “main” ]
-
-Concurrency:
-  Group: ${{ github.workflow }}-${{ github.ref }}
-  Cancel-in-progress: true
-
-Permissions:
-  Contents: read
-
-Jobs:
-  Detect-changes:
-    Runs-on: ubuntu-latest
-    Outputs:
-      Backend_changed: ${{ steps.filter.outputs.backend }}
-    Steps:
-      - uses: actions/checkout@v4.1.1
+name: GlobalFin Enterprise CI/CD
+ 
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'infrastructure/**'
+      - '!docs/**'
+  pull_request:
+    branches: [ "main" ]
+ 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+ 
+permissions:
+  contents: read
+ 
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend_changed: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.1.1
+        
       - name: Detect changes
-        Id: filter
-        Run: |
-          Echo “backend=true” >> $GITHUB_OUTPUT
-
-  Backend-matrix-ci:
-    Needs: detect-changes
-    If: needs.detect-changes.outputs.backend_changed == ‘true’
-    Strategy:
-      Matrix:
-        Os: [ubuntu-latest, windows-latest]
-        Node: [18, 20]
-        Exclude:
--	Os: windows-latest
-Node: 18
-    Uses: ./.github/workflows/reusable-backend.yml
-    With:
-      Node-version: ${{ matrix.node }}
-
-  Deploy-staging:
-    Needs: backend-matrix-ci
-    Runs-on: ubuntu-latest
-    Environment: staging
-    Permissions:
-      Contents: read
-      Deployments: write
-    Steps:
--	Run: echo “Desplegando en Staging…”
-
-  Deploy-production:
-    Needs: deploy-staging
-    Runs-on: ubuntu-latest
-    Environment: production
-    Steps:
--	Name: Deploy
-        Run: echo “Desplegando en Producción de manera segura…”
+        id: filter
+        run: |
+          echo "backend=true" >> $GITHUB_OUTPUT
+ 
+  backend-matrix-ci:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend_changed == 'true'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 20]
+        exclude:
+          - os: windows-latest
+            node: 18
+    uses: ./.github/workflows/reusable-backend.yml
+    with:
+      node-version: ${{ matrix.node }}
+ 
+  deploy-staging:
+    needs: backend-matrix-ci
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Deploy Staging
+        run: echo "Desplegando en Staging..."
+ 
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy
+        run: echo "Desplegando en Producción de manera segura..."
       
--	Name: Generar Reporte Markdown
-        Run: |
-          Echo “### Despliegue completado 🚀” >> $GITHUB_STEP_SUMMARY
-          Echo “Entorno: Producción” >> $GITHUB_STEP_SUMMARY
+      - name: Generar Reporte Markdown
+        run: |
+          echo "### Despliegue completado 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "Entorno: Producción" >> $GITHUB_STEP_SUMMARY
