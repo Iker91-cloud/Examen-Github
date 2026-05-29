@@ -1,5 +1,4 @@
-workflow_call:
-Name: Reusable Backend Examen
+Name: Reusable Backend CI
 
 On:
   Workflow_call:
@@ -15,16 +14,16 @@ Jobs:
   Build-and-test:
     Runs-on: ubuntu-latest
     Steps:
-Name: Checkout repository
-        Uses: actions/checkout@v4.1.1 #
+-	Name: Checkout repository
+        Uses: actions/checkout@v4.1.1
 
-Name: Setup Node.js
+-	Name: Setup Node.js
         Uses: actions/setup-node@v4.0.2
         With:
           Node-version: ${{ inputs.node-version }}
-          Cache: ‘npm’ 
+          Cache: ‘npm’
 
-Name: Install and Test
+-	Name: Install and Test
         Run: |
           Echo “Ejecutando tests de backend…”
           # npm ci
