@@ -1,4 +1,4 @@
-name: GlobalFin Enterprise CI/CD
+name: GlobalFin examen
  
 on:
   push:
