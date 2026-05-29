@@ -22,7 +22,7 @@ Name: Setup Node.js
         Uses: actions/setup-node@v4.0.2
         With:
           Node-version: ${{ inputs.node-version }}
-          Cache: ‘npm’ # Optimización (Ejercicio 3)
+          Cache: ‘npm’ 
 
 Name: Install and Test
         Run: |
